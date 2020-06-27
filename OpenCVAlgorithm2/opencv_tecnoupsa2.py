@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 from statistics import mean
-from FirebaseApp import *
+from FirebaseMethods import *
 #pip install statistics
 #pip install dnspython
 
