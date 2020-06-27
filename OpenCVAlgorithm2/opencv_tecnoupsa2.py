@@ -10,12 +10,16 @@ global sendToDB
 global banderaDB
 global segundosEsperaAlarma
 global segundosEsperaBD
+global apagarAlarma
 
 nombreCamara = "cAirport"
 bandera = False
 banderaDB = False
+banderaAlarmaActivada = False
 segundosEsperaAlarma = 5    #
 segundosEsperaBD = 10       #1 hora = 3600 segundos
+segundosDuracionAlarma = 5
+apagarAlarma = None
 
 aglomeraciones = 0
 
@@ -53,6 +57,12 @@ while cap.isOpened():
     for contour in contours:
         (x, y, w, h) = cv2.boundingRect(contour)
 
+        if apagarAlarma != None and apagarAlarma <= datetime.datetime.now() and banderaAlarmaActivada == True:
+            desactivarAlarma(nombreCamara)
+            banderaAlarmaActivada = False
+            print ("Alarma Apagada")
+            apagarAlarma = None
+
         if cv2.contourArea(contour) < 1000:
             continue
         elif (cv2.contourArea(contour) > 1000) and (cv2.contourArea(contour) <= 4500):
@@ -74,9 +84,12 @@ while cap.isOpened():
                 aglomeraciones = aglomeraciones + 1
 
             elif then <= datetime.datetime.now() and bandera == True:
-                print ("Encender alarma")
+                print ("Alarma encendida")
                 activarAlarma(nombreCamara)
                 bandera = False
+                banderaAlarmaActivada = True
+                apagarAlarma = datetime.datetime.now() + datetime.timedelta(seconds=segundosDuracionAlarma)
+
 
     #ENVIO A LA BASE DE DATOS MONGODB A TRAVES DE LA FUNCION crearDB
 

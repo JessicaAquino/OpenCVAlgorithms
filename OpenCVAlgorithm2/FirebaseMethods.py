@@ -24,4 +24,3 @@ def desactivarAlarma(camara):
 
 def activarAlarma(camara):
     firebase.put(camara,'alarm',1)
-    threading.Timer(5.0, desactivarAlarma(camara)).start()
