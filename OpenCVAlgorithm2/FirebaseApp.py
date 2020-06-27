@@ -7,7 +7,7 @@ import datetime, time
 firebaseURL = 'https://crowdcams.firebaseio.com/'
 firebase = firebase.FirebaseApplication(firebaseURL, None)
 
-def crearDB(personas, cantaglomeraciones):
+def crearDB(camara, personas, cantaglomeraciones):
    rightNow = datetime.datetime.now()
    fechaActual = rightNow.strftime("%Y-%m-%d")
    hora = rightNow.strftime("%H:%M:%S")
@@ -15,6 +15,5 @@ def crearDB(personas, cantaglomeraciones):
    'Crowds': cantaglomeraciones,
    'People': personas
    }
-   destination = 'cAirport/information/'+fechaActual+'/'
-   f = firebase.put(destination,hora,newInformation)
-   print(f)
+   destination = camara+'/information/'+fechaActual+'/'
+   firebase.put(destination,hora,newInformation)

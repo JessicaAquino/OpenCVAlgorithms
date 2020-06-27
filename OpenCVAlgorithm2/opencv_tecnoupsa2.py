@@ -85,7 +85,7 @@ while cap.isOpened():
 
     if sendToDB <= datetime.datetime.now() and banderaDB == False:
        promListaPersonas = Average(listaPersonas)
-       crearDB(round(promListaPersonas, 0), aglomeraciones)
+       crearDB("cAirport", round(promListaPersonas, 0), aglomeraciones) #FUNCION PARA MANDAR A LA BD (NOMBRE CAMARA, CANTPERSONAS, NROAGLOMERACIONES)
        print ("Datos subidos a la BD con el promedio ", promListaPersonas)
        listaPersonas.clear()
        contador = 0
