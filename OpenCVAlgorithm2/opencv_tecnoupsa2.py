@@ -1,7 +1,5 @@
 import cv2
 import numpy as np
-import time
-import datetime, time
 from statistics import mean
 from FirebaseApp import *
 #pip install statistics
@@ -13,6 +11,7 @@ global banderaDB
 global segundosEsperaAlarma
 global segundosEsperaBD
 
+nombreCamara = "cAirport"
 bandera = False
 banderaDB = False
 segundosEsperaAlarma = 5    #
@@ -76,6 +75,7 @@ while cap.isOpened():
 
             elif then <= datetime.datetime.now() and bandera == True:
                 print ("Encender alarma")
+                activarAlarma(nombreCamara)
                 bandera = False
 
     #ENVIO A LA BASE DE DATOS MONGODB A TRAVES DE LA FUNCION crearDB
@@ -85,7 +85,7 @@ while cap.isOpened():
 
     if sendToDB <= datetime.datetime.now() and banderaDB == False:
        promListaPersonas = Average(listaPersonas)
-       crearDB("cAirport", round(promListaPersonas, 0), aglomeraciones) #FUNCION PARA MANDAR A LA BD (NOMBRE CAMARA, CANTPERSONAS, NROAGLOMERACIONES)
+       crearDB(nombreCamara, round(promListaPersonas, 0), aglomeraciones) #FUNCION PARA MANDAR A LA BD (NOMBRE CAMARA, CANTPERSONAS, NROAGLOMERACIONES)
        print ("Datos subidos a la BD con el promedio ", promListaPersonas)
        listaPersonas.clear()
        contador = 0
