@@ -18,6 +18,3 @@ def crearDB(personas, cantaglomeraciones):
    destination = 'cAirport/information/'+fechaActual+'/'
    f = firebase.put(destination,hora,newInformation)
    print(f)
-
-
-crearDB(9, 11)
