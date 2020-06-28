@@ -1,5 +1,11 @@
 OpenCVAlgorithm2/output.avi
 OpenCVAlgorithm2/__pycache__
 OpenCVAlgorithm2/airport_test.mp4
+<<<<<<< HEAD
 vtest.avi
 output.avi
+=======
+OpenCVAlgorithm1/output.avi
+OpenCVAlgorithm1/__pycache__
+OpenCVAlgorithm1/vtest.avi
+>>>>>>> a8ddcbfd768f448a2c5e04898018c3d60cc2e571
