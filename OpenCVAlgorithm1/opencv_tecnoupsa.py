@@ -1,30 +1,25 @@
 import cv2
 import numpy as np
-import time
-import datetime, time
 from statistics import mean
+from FirebaseMethods import *
 #pip install statistics
-from pymongo import MongoClient
-#pip install pymongo
-#pip install mongodns
-
-#INFORMACION MONGODB
-
-client = MongoClient("mongodb+srv://user:Passw0rd@aliciaproject-fn9lx.mongodb.net/test?retryWrites=true&w=majority")
-db = client.get_database('crowdlessDB') #AquiKsuale Ola wenas noshes
-rAglomeraciones = db.information
-rPersonas = db.people
+#pip install dnspython
 
 #FUNCIONES PARA EL PROGRAMA
 global sendToDB
 global banderaDB
 global segundosEsperaAlarma
 global segundosEsperaBD
+global apagarAlarma
 
+nombreCamara = "cStreet"
 bandera = False
 banderaDB = False
+banderaAlarmaActivada = False
 segundosEsperaAlarma = 5    #
 segundosEsperaBD = 10       #1 hora = 3600 segundos
+segundosDuracionAlarma = 5
+apagarAlarma = None
 
 aglomeraciones = 0
 
@@ -33,42 +28,20 @@ sendToDB = datetime.datetime.now() + datetime.timedelta(seconds=segundosEsperaBD
 def Average(lst):
     return mean(lst)
 
-def crearDB(personas, cantaglomeraciones):
-    rightNow = datetime.datetime.now()
-    fechaActual = rightNow.strftime("%Y-%m-%d")
-    hora = rightNow.strftime("%H:%M:%S")
-    newAglomeracion = {
-        'Fecha': fechaActual,
-        'Hora': hora,
-        'Camara': "cFarmacia",
-        'CantidadAglomeraciones': cantaglomeraciones
-    }
-
-    newPersonas = {
-        'Fecha': fechaActual,
-        'Hora': hora,
-        'Camara': "cFarmacia",
-        'CantidadPersonas': personas
-    }
-
-    rAglomeraciones.insert_one(newAglomeracion)
-    rPersonas.insert_one(newPersonas)
-
 #ALGORITMO OPENCV
 
-cap = cv2.VideoCapture('vtest.avi') #http://192.168.0.104:4747/mjpegfeed?640x480
-frame_width = int( cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+cap = cv2.VideoCapture("vtest.avi") #http://192.168.0.104:4747/mjpegfeed?640x480
+frame_width = int( cap.get(cv2.CAP_PROP_FRAME_WIDTH)) #
 
-frame_height =int( cap.get( cv2.CAP_PROP_FRAME_HEIGHT))
+frame_height =int( cap.get( cv2.CAP_PROP_FRAME_HEIGHT)) #
 
 fourcc = cv2.VideoWriter_fourcc('X','V','I','D')
 
-out = cv2.VideoWriter("output.avi", fourcc, 5.0, (1280,720)) #avi
+out = cv2.VideoWriter("output.avi", fourcc, 5.0, (1280, 720))#(1280,720)) #avi
 
 ret, frame1 = cap.read()
 ret, frame2 = cap.read()
 print(frame1.shape)
-
 
 while cap.isOpened():
     diff = cv2.absdiff(frame1, frame2)
@@ -83,15 +56,21 @@ while cap.isOpened():
     for contour in contours:
         (x, y, w, h) = cv2.boundingRect(contour)
 
+        if apagarAlarma != None and apagarAlarma <= datetime.datetime.now() and banderaAlarmaActivada == True:
+            desactivarAlarma(nombreCamara)
+            banderaAlarmaActivada = False
+            print ("Alarma Apagada")
+            apagarAlarma = None
+
         if cv2.contourArea(contour) < 1000:
             continue
-        elif (cv2.contourArea(contour) > 900) and (cv2.contourArea(contour) < 3500):
-            cv2.rectangle(frame1, (x, y), (x+w, y+h), (0, 255, 0), 2)
+        elif (cv2.contourArea(contour) > 1000) and (cv2.contourArea(contour) <= 4500):
+            #cv2.rectangle(frame1, (x, y), (x+w, y+h), (0, 255, 0), 2)
             # bandera = False
             #DESCOMENTAR SOLAMENTE CUANDO LAS AREAS ESTÉN BIEN DEFINIDAS, CASO CONTRARIO NUNCA VA A SONAR LA ALARMA :) Salu2
             contador = contador + 1
 
-        elif (cv2.contourArea(contour) > 3500) and (cv2.contourArea(contour) < 5000):  #Que el cronometro aun no fue inicializado
+        elif (cv2.contourArea(contour) > 4500) and (cv2.contourArea(contour) < 15000):  #Que el cronometro aun no fue inicializado
             cv2.rectangle(frame1, (x, y), (x+w, y+h), (0, 0, 255), 4)
             cv2.putText(frame1, "ALERTA: {}".format('AGLOMERACION'), (10, 20), cv2.FONT_HERSHEY_SIMPLEX,
                         1, (0, 0, 255), 3)
@@ -99,37 +78,41 @@ while cap.isOpened():
             if bandera == False:
                 then = datetime.datetime.now() + datetime.timedelta(seconds=segundosEsperaAlarma)
                 bandera = True
-                print("Bandera activada")
+                # print("Bandera activada")
                 aglomeraciones = aglomeraciones + 1
 
             elif then <= datetime.datetime.now() and bandera == True:
-                print ("Encender alarma")
+                print ("Alarma encendida")
+                activarAlarma(nombreCamara)
                 bandera = False
+                banderaAlarmaActivada = True
+                apagarAlarma = datetime.datetime.now() + datetime.timedelta(seconds=segundosDuracionAlarma)
+
 
     #ENVIO A LA BASE DE DATOS MONGODB A TRAVES DE LA FUNCION crearDB
 
-    print("CONTADOR: ", contador, " AGLOMERACIONES: ", aglomeraciones)
+    # print("CONTADOR: ", contador, " AGLOMERACIONES: ", aglomeraciones)
     listaPersonas.append(contador)
 
     if sendToDB <= datetime.datetime.now() and banderaDB == False:
-        promListaPersonas = Average(listaPersonas)
-        crearDB(round(promListaPersonas, 0), aglomeraciones)
-        print ("Datos subidos a la BD con el promedio ", promListaPersonas)
-        listaPersonas.clear()
-        contador = 0
-        aglomeraciones = 0
-        banderaDB = True
+       promListaPersonas = Average(listaPersonas)
+       crearDB(nombreCamara, round(promListaPersonas, 0), aglomeraciones) #FUNCION PARA MANDAR A LA BD (NOMBRE CAMARA, CANTPERSONAS, NROAGLOMERACIONES)
+       # print ("Datos subidos a la BD con el promedio ", promListaPersonas)
+       listaPersonas.clear()
+       contador = 0
+       aglomeraciones = 0
+       banderaDB = True
 
 
     if banderaDB == True:
-        sendToDB = datetime.datetime.now() + datetime.timedelta(seconds=segundosEsperaBD)
-        banderaDB = False
+       sendToDB = datetime.datetime.now() + datetime.timedelta(seconds=segundosEsperaBD)
+       banderaDB = False
 
     #CONTINUACION ALGORITMO OPENCV
 
     image = cv2.resize(frame1, (1280,720))
     out.write(image)
-    cv2.imshow("feed", frame1)
+    cv2.imshow("Street", frame1)
     frame1 = frame2
     ret, frame2 = cap.read()
 
