@@ -16,9 +16,9 @@ nombreCamara = "cAirport"
 bandera = False
 banderaDB = False
 banderaAlarmaActivada = False
-segundosEsperaAlarma = 3    #
+segundosEsperaAlarma = 5    #
 segundosEsperaBD = 10       #1 hora = 3600 segundos
-segundosDuracionAlarma = 6
+segundosDuracionAlarma = 5
 apagarAlarma = None
 
 aglomeraciones = 0
