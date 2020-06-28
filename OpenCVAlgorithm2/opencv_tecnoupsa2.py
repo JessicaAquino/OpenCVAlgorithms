@@ -16,9 +16,9 @@ nombreCamara = "cAirport"
 bandera = False
 banderaDB = False
 banderaAlarmaActivada = False
-segundosEsperaAlarma = 5    #
+segundosEsperaAlarma = 3    #
 segundosEsperaBD = 10       #1 hora = 3600 segundos
-segundosDuracionAlarma = 5
+segundosDuracionAlarma = 6
 apagarAlarma = None
 
 aglomeraciones = 0
@@ -42,7 +42,6 @@ out = cv2.VideoWriter("output.avi", fourcc, 5.0, (1280, 720))#(1280,720)) #avi
 ret, frame1 = cap.read()
 ret, frame2 = cap.read()
 print(frame1.shape)
-
 
 while cap.isOpened():
     diff = cv2.absdiff(frame1, frame2)
@@ -80,7 +79,7 @@ while cap.isOpened():
             if bandera == False:
                 then = datetime.datetime.now() + datetime.timedelta(seconds=segundosEsperaAlarma)
                 bandera = True
-                print("Bandera activada")
+                # print("Bandera activada")
                 aglomeraciones = aglomeraciones + 1
 
             elif then <= datetime.datetime.now() and bandera == True:
@@ -93,13 +92,13 @@ while cap.isOpened():
 
     #ENVIO A LA BASE DE DATOS MONGODB A TRAVES DE LA FUNCION crearDB
 
-    print("CONTADOR: ", contador, " AGLOMERACIONES: ", aglomeraciones)
+    # print("CONTADOR: ", contador, " AGLOMERACIONES: ", aglomeraciones)
     listaPersonas.append(contador)
 
     if sendToDB <= datetime.datetime.now() and banderaDB == False:
        promListaPersonas = Average(listaPersonas)
        crearDB(nombreCamara, round(promListaPersonas, 0), aglomeraciones) #FUNCION PARA MANDAR A LA BD (NOMBRE CAMARA, CANTPERSONAS, NROAGLOMERACIONES)
-       print ("Datos subidos a la BD con el promedio ", promListaPersonas)
+       # print ("Datos subidos a la BD con el promedio ", promListaPersonas)
        listaPersonas.clear()
        contador = 0
        aglomeraciones = 0
