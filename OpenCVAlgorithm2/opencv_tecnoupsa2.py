@@ -32,16 +32,12 @@ def Average(lst):
 
 cap = cv2.VideoCapture("airport_test.mp4") #http://192.168.0.104:4747/mjpegfeed?640x480
 frame_width = int( cap.get(cv2.CAP_PROP_FRAME_WIDTH)) #
+
 frame_height =int( cap.get( cv2.CAP_PROP_FRAME_HEIGHT)) #
 
 fourcc = cv2.VideoWriter_fourcc('X','V','I','D')
 
 out = cv2.VideoWriter("output.avi", fourcc, 5.0, (1280, 720))#(1280,720)) #avi
-<<<<<<< HEAD
-frame_counter = 0
-while True:
-    ret, frame1 = cap.read()
-=======
 
 ret, frame1 = cap.read()
 ret, frame2 = cap.read()
@@ -119,93 +115,12 @@ while cap.isOpened():
     out.write(image)
     cv2.imshow("Airport", frame1)
     frame1 = frame2
->>>>>>> a8ddcbfd768f448a2c5e04898018c3d60cc2e571
     ret, frame2 = cap.read()
-    print(frame1.shape)
 
-
-    while cap.isOpened():
-        diff = cv2.absdiff(frame1, frame2)
-        gray = cv2.cvtColor(diff, cv2.COLOR_BGR2GRAY)
-        blur = cv2.GaussianBlur(gray, (5,5), 0)
-        _, thresh = cv2.threshold(blur, 20, 255, cv2.THRESH_BINARY)
-        dilated = cv2.dilate(thresh, None, iterations=3)
-        contours, _ = cv2.findContours(dilated, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-        frame_counter += 1
-
-        contador = 0
-        listaPersonas = []
-        for contour in contours:
-            (x, y, w, h) = cv2.boundingRect(contour)
-
-            if apagarAlarma != None and apagarAlarma <= datetime.datetime.now() and banderaAlarmaActivada == True:
-                desactivarAlarma(nombreCamara)
-                banderaAlarmaActivada = False
-                print ("Alarma Apagada")
-                apagarAlarma = None
-
-            if cv2.contourArea(contour) < 1000:
-                continue
-            elif (cv2.contourArea(contour) > 1000) and (cv2.contourArea(contour) <= 4500):
-                #cv2.rectangle(frame1, (x, y), (x+w, y+h), (0, 255, 0), 2)
-                # bandera = False
-                #DESCOMENTAR SOLAMENTE CUANDO LAS AREAS ESTÉN BIEN DEFINIDAS, CASO CONTRARIO NUNCA VA A SONAR LA ALARMA :) Salu2
-                contador = contador + 1
-            elif (cv2.contourArea(contour) > 4500) and (cv2.contourArea(contour) < 15000):  #Que el cronometro aun no fue inicializado
-                cv2.rectangle(frame1, (x, y), (x+w, y+h), (0, 0, 255), 4)
-                cv2.rectangle(frame1, (200, 450), (350, 300), (0, 0, 255), 4)
-                cv2.putText(frame1, "ALERTA: {}".format('AGLOMERACION'), (10, 20), cv2.FONT_HERSHEY_SIMPLEX,
-                            1, (0, 0, 255), 3)
-
-                if bandera == False:
-                    then = datetime.datetime.now() + datetime.timedelta(seconds=segundosEsperaAlarma)
-                    bandera = True
-                    print("Bandera activada")
-                    aglomeraciones = aglomeraciones + 1
-
-                elif then <= datetime.datetime.now() and bandera == True:
-                    print ("Alarma encendida")
-                    activarAlarma(nombreCamara)
-                    bandera = False
-                    banderaAlarmaActivada = True
-                    apagarAlarma = datetime.datetime.now() + datetime.timedelta(seconds=segundosDuracionAlarma)
-
-
-        #ENVIO A LA BASE DE DATOS MONGODB A TRAVES DE LA FUNCION crearDB
-
-        print("CONTADOR: ", contador, " AGLOMERACIONES: ", aglomeraciones)
-        listaPersonas.append(contador)
-
-        if sendToDB <= datetime.datetime.now() and banderaDB == False:
-           promListaPersonas = Average(listaPersonas)
-           crearDB(nombreCamara, round(promListaPersonas, 0), aglomeraciones) #FUNCION PARA MANDAR A LA BD (NOMBRE CAMARA, CANTPERSONAS, NROAGLOMERACIONES)
-           print ("Datos subidos a la BD con el promedio ", promListaPersonas)
-           listaPersonas.clear()
-           contador = 0
-           aglomeraciones = 0
-           banderaDB = True
-
-
-        if banderaDB == True:
-           sendToDB = datetime.datetime.now() + datetime.timedelta(seconds=segundosEsperaBD)
-           banderaDB = False
-
-        #CONTINUACION ALGORITMO OPENCV
-
-        image = cv2.resize(frame1, (1280,720))
-        out.write(image)
-        cv2.imshow("feed", frame1)
-        frame1 = frame2
-        ret, frame2 = cap.read()
-
-        if frame_counter == cap.get(cv2.CAP_PROP_FRAME_COUNT):
-            frame_counter = 0 #Or whatever as long as it is the same as next line
-            cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
-
-        if cv2.waitKey(40) == 27:
-            end = time.time()
-            print(end - start)
-            #break
+    if cv2.waitKey(40) == 27:
+        end = time.time()
+        print(end - start)
+        #break
 
 cv2.destroyAllWindows()
 cap.release()
